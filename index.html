@@ -1,33 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Submit Form</title>
+  <meta charset="UTF-8">
+  <title>Production Network Params</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, button {
+      margin-top: 5px;
+      padding: 5px;
+      font-size: 1rem;
+    }
+  </style>
 </head>
 <body>
-  <h1>Submit Parameters</h1>
-  <form id="myForm">
-    <label for="param1">Parameter 1:</label>
-    <input type="text" id="param1" name="param1" required><br><br>
+  <h1>Production Network Params</h1>
+  <form id="paramsForm">
+    <label for="pipeConductivity">Pipe Conductivity (W/mk):</label>
+    <input type="number" id="pipeConductivity" name="pipeConductivity" step="any" required>
 
-    <label for="param2">Parameter 2:</label>
-    <input type="text" id="param2" name="param2" required><br><br>
+    <label>
+      <input type="checkbox" id="modelFluid" name="modelFluid">
+      Model Fluid
+    </label>
 
+    <div id="fluidTypeSection">
+      <label for="fluidType">Fluid Type:</label>
+      <select id="fluidType" name="fluidType">
+        <option value="presalt">Presalt</option>
+        <option value="northsea">North Sea</option>
+      </select>
+    </div>
+
+    <div id="detailedFluidSection" style="display: none;">
+      <label for="oilApi">Oil API:</label>
+      <input type="number" id="oilApi" name="oilApi" step="any">
+
+      <label for="gasSg">Gas SG:</label>
+      <input type="number" id="gasSg" name="gasSg" step="any">
+
+      <label for="waterSg">Water SG:</label>
+      <input type="number" id="waterSg" name="waterSg" step="any">
+    </div>
+
+    <br>
     <button type="submit">Submit</button>
   </form>
 
-  <div id="response"></div>
+  <div id="response" style="margin-top: 20px; color: green;"></div>
 
   <script>
-    document.getElementById('myForm').addEventListener('submit', async function(e) {
+    const modelFluidCheckbox = document.getElementById('modelFluid');
+    const fluidTypeSection = document.getElementById('fluidTypeSection');
+    const detailedFluidSection = document.getElementById('detailedFluidSection');
+
+    modelFluidCheckbox.addEventListener('change', () => {
+      if (modelFluidCheckbox.checked) {
+        detailedFluidSection.style.display = 'block';
+        fluidTypeSection.style.display = 'none';
+      } else {
+        detailedFluidSection.style.display = 'none';
+        fluidTypeSection.style.display = 'block';
+      }
+    });
+
+    document.getElementById('paramsForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const param1 = document.getElementById('param1').value;
-      const param2 = document.getElementById('param2').value;
+
+      const payload = {
+        pipeConductivity: parseFloat(document.getElementById('pipeConductivity').value),
+        modelFluid: modelFluidCheckbox.checked
+      };
+
+      if (modelFluidCheckbox.checked) {
+        payload.oilApi = parseFloat(document.getElementById('oilApi').value);
+        payload.gasSg = parseFloat(document.getElementById('gasSg').value);
+        payload.waterSg = parseFloat(document.getElementById('waterSg').value);
+      } else {
+        payload.fluidType = document.getElementById('fluidType').value;
+      }
 
       try {
-        const response = await fetch('https://your-api.com/endpoint', {
+        const response = await fetch('https://your-api.com/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ param1, param2 })
+          body: JSON.stringify(payload)
         });
 
         const data = await response.json();
